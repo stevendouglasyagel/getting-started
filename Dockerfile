@@ -1,40 +1,19 @@
-# Install the base requirements for the app.
-# This stage is to support development.
-FROM --platform=$BUILDPLATFORM python:alpine AS base
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
+# GCC support can be specified at major, minor, or micro version
+# (e.g. 8, 8.2 or 8.2.0).
+# See https://hub.docker.com/r/library/gcc/ for all supported GCC
+# tags from Docker Hub.
+# See https://docs.docker.com/samples/library/gcc/ for more on how to use this image
+FROM gcc:latest
 
-FROM --platform=$BUILDPLATFORM node:18-alpine AS app-base
-WORKDIR /app
-COPY app/package.json app/yarn.lock ./
-COPY app/spec ./spec
-COPY app/src ./src
+# These commands copy your files into the specified directory in the image
+# and set that as the working location
+COPY . /usr/src/myapp
+WORKDIR /usr/src/myapp
 
-# Run tests to validate app
-FROM app-base AS test
-RUN yarn install
-RUN yarn test
+# This command compiles your app using GCC, adjust for your source code
+RUN g++ -o myapp main.cpp
 
-# Clear out the node_modules and create the zip
-FROM app-base AS app-zip-creator
-COPY --from=test /app/package.json /app/yarn.lock ./
-COPY app/spec ./spec
-COPY app/src ./src
-RUN apk add zip && \
-    zip -r /app.zip /app
+# This command runs your application, comment out this line to compile only
+CMD ["./myapp"]
 
-# Dev-ready container - actual files will be mounted in
-FROM --platform=$BUILDPLATFORM base AS dev
-CMD ["mkdocs", "serve", "-a", "0.0.0.0:8000"]
-
-# Do the actual build of the mkdocs site
-FROM --platform=$BUILDPLATFORM base AS build
-COPY . .
-RUN mkdocs build
-
-# Extract the static content from the build
-# and use a nginx image to serve the content
-FROM --platform=$TARGETPLATFORM nginx:alpine
-COPY --from=app-zip-creator /app.zip /usr/share/nginx/html/assets/app.zip
-COPY --from=build /app/site /usr/share/nginx/html
+LABEL Name=gettingstarted Version=0.0.1
