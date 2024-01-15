@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "name": "Attach to Chrome",
+            "port": 9222,
+            "request": "attach",
+            "type": "chrome",
+            "webRoot": "npm run "
+        },
+        {
+            "name": "Docker Node.js Launch",
+            "type": "docker",
+            "request": "launch",
+            "preLaunchTask": "docker-run: debug",
+            "platform": "node",
+            "node": {
+                "package": "${workspaceFolder}/node_modules/simple-update-notifier/package.json",
+                "localRoot": "${workspaceFolder}/node_modules/simple-update-notifier"
+            }
+        }
+    ]
+}

@@ -1,8 +1,14 @@
 version: '3.4'
 
 services:
-  gettingstarted:
-    image: gettingstarted
+  simpleupdatenotifier:
+    image: simpleupdatenotifier
     build:
-      context: .
+      context: node_modules/simple-update-notifier
       dockerfile: ./Dockerfile
+    environment:
+      NODE_ENV: development
+    ports:
+      - 3000:3000
+      - 9229:9229
+    command: ["node", "--inspect=0.0.0.0:9229", "build/index.js"]
